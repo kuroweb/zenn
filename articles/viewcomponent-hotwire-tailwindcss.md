@@ -1,0 +1,122 @@
+---
+title: 'ViewComponent + Hotwireでのコンポーネント指向なフロントエンド開発を試してみた'
+emoji: '🌊'
+type: 'tech' # tech: 技術記事 / idea: アイデア
+topics: []
+published: false
+---
+
+# Railsのフロントエンド開発でつらいところ
+
+Railsでフロントエンド開発する場合に、よく使う部品はpartialなどで共通化しますよね？
+
+小規模であればワークしますが、コードベースが成長したり、複雑なユースケースを満たすようになると以下のような課題が生まれてきます。
+
+1. データフローを把握しづらい
+2. JavaScriptとViewの依存関係が曖昧で保守しづらい
+3. テスタブルでない
+
+それぞれ詳細を見ていきます
+
+## 1. データフローを把握しづらい
+
+partialはControllerで定義したインスタンス変数を参照できるため、以下のようにデータフローが複雑になりがちです。
+
+Partialに値を受け渡すときにlocalsでの受け渡しを必須にすれば解消できますが、曖昧な方針でPartialを実装しているとカオスになります。
+
+```mermaid
+flowchart LR
+  subgraph Controller
+    value_1["@hoge"]
+    value_2["@fuga"]
+  end
+
+  View
+  Partial
+  Controller
+
+  View --参照-->value_1
+  View --localsで受け渡し-->Partial
+  Partial --参照-->value_2
+```
+
+## 2. JavaScriptとViewの依存関係が曖昧で保守しづらい
+
+Template単位でJavaScriptファイルを用意するような、大味な実装になりがち。
+
+Viewのすべての要素に対してJavaScriptが依存する実装になってしまい、TemplateやPartialを修正したときに意図しないデグレが発生するなど、保守性が低下してしまう。
+
+```mermaid
+flowchart LR
+  subgraph JavaScript
+    function_A
+    function_B
+  end
+
+  View
+  Partial_1
+  Partial_2
+
+  View --render-->Partial_1
+  View --render-->Partial_2
+  function_A --参照-->View
+  function_B --参照-->Partial_2
+```
+
+## 3. テスタブルでない
+
+Partial単体でテストするための優れたテストスイートが存在しないため、View全体に対する大味なユニットテストになりがち。
+
+次第にユニットテストがメンテされなくなり、フロントエンドのコード品質をユニットテストで担保することを諦めるようになる。
+
+# ViewComponentとHotwireを組み合わせるとこうなる（はず）
+
+## 1. データフローを把握しやすくなる
+
+ViewComponentには引数での受け渡しを強制できるため、データフローが理解しやすくなる（Controllerのインスタンス変数を直接参照できない仕様のため）
+
+```mermaid
+flowchart LR
+  subgraph Controller
+    value_1["@hoge"]
+    value_2["@fuga"]
+  end
+
+  View --参照-->value_1
+  View --参照-->value_2
+  View --引数で受け渡し-->ViewComponent
+```
+
+## 2. JavaScriptとView(ViewComponent)の依存関係が明確で保守しやすい
+
+Hotwire(Stimulus.js)により、ViewComponentのerbファイルとjsファイルを関連付けられる様になる。
+
+また、Hotwire特有のdata属性を用いることで、値の取得やDOM要素の取得、イベントリスナーの登録ができるため、ViewComponent内での実装をカプセル化しやすくなった。（従来どおりのidやclass指定が必要になるケースもあるため、不完全ではあるが。）
+
+```mermaid
+flowchart LR
+  subgraph HogeComponent
+    direction LR
+    hoge_component.rb
+    hoge_component.html.erb
+    hoge_controller.js
+
+    hoge_component.rb --値を受け渡し-->hoge_component.html.erb
+    hoge_controller.js --参照-->hoge_component.html.erb
+  end
+
+  View -->HogeComponent
+```
+
+もちろん、Viewファイル自体にjsファイルを関連付けることも可能であるため、View全体に対する動的な実装も可能である。
+
+```mermaid
+flowchart LR
+  view["View(hoge.html.erb)"]
+  hoge_controller.js
+  hoge_controller.js --参照-->view
+```
+
+## 3. テスタブルである
+
+ViewComponent専用のヘルパーが用意されており、POROのユニットテストに近い感覚で実装可能である。
