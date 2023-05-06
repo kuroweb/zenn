@@ -1,6 +1,6 @@
 ---
 title: 'ViewComponent + Hotwireでのコンポーネント指向なフロントエンド開発を試してみた'
-emoji: '🌊'
+emoji: '🐥'
 type: 'tech' # tech: 技術記事 / idea: アイデア
 topics: ['Ruby', 'Rails']
 published: true
