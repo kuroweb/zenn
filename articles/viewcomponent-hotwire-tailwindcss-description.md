@@ -1,5 +1,5 @@
 ---
-title: 'ViewComponent + Hotwireでのコンポーネント指向なフロントエンド開発を試してみた'
+title: 'Rails7 + ViewComponent + Hotwireでのコンポーネント指向なフロントエンド開発を試してみた'
 emoji: '🐥'
 type: 'tech' # tech: 技術記事 / idea: アイデア
 topics: ['Ruby', 'Rails']
