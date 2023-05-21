@@ -10,7 +10,7 @@ published: true
 
 本記事では環境構築について取り扱いません。
 
-詳細につきましては[リポジトリ]('https://github.com/kuroweb/viewcomponent-hotwire-tailwindcss')を参照してください。
+詳細につきましては[リポジトリ](https://github.com/kuroweb/viewcomponent-hotwire-tailwindcss)を参照してください。
 
 # Railsのフロントエンド開発でつらいところ
 
